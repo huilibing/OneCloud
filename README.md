@@ -79,7 +79,7 @@ config interface 'lan'
 exit
 ```
 
-> 永久开启网卡混杂模式
+永久开启网卡混杂模式
 ```ini
 # 修改配置
 vi /etc/network/interfaces
