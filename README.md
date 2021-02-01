@@ -12,21 +12,23 @@
 
 
 ## 宿主机以及 Docker 相关设置
-开启网卡混杂模式
+- 开启网卡混杂模式
 ```ini
 ip link set eth0 promisc on
 ```
-创建 `Docker` 虚拟网络  
+- 创建 `Docker` 虚拟网络  
 
-- 虚拟网络名称为 `macnet`，驱动为 `macvlan` 模式  
-- 将 `subnet 10.10.10.0`  修改为你自己主路由的网段  
-- 将 `geteway 10.10.10.1` 修改为你自己的主路由网关
+> 虚拟网络名称为 `macnet`，驱动为 `macvlan` 模式  
+> 
+> 将 `subnet 10.10.10.0`  修改为你自己主路由的网段  
+> 
+> 将 `geteway 10.10.10.1` 修改为你自己的主路由网关
 ```ini
 docker network create -d macvlan --subnet=10.10.10.0/24 --gateway=10.10.10.1 -o parent=eth0 macnet
 ```
 
-拉取镜像配置容器
-- 将 `--ip 10.10.10.11` 修改为你自己主路由的网段IP
+- 拉取镜像配置容器
+> 将 `--ip 10.10.10.11` 修改为你自己主路由的网段IP
 ```ini
 # 拉取 `OpenWrt` 镜像
 docker pull w8ves/openwrt:onecloud
@@ -35,7 +37,7 @@ docker pull w8ves/openwrt:onecloud
 docker run --restart always --name openwrt -d --network macnet --ip 10.10.10.11 --privileged w8ves/openwrt:onecloud /sbin/init
 ```
 
-修改容器网络配置
+- 修改容器网络配置
 ```ini
 # 查看运行中的容器
 docker ps -a
@@ -79,7 +81,7 @@ config interface 'lan'
 exit
 ```
 
-> 永久开启网卡混杂模式
+- 永久开启网卡混杂模式
 ```ini
 # 修改配置
 vi /etc/network/interfaces
@@ -100,22 +102,29 @@ iface eth0 inet dhcp
 
 ## 容器 OpenWrt 的相关设置
 
-接口
+- 接口
 
-- `网络` > `接口` > `修改`  
-- `忽略此接口` ☑️ > `保存&应用` 
+> `网络` > `接口` > `修改`  
+> 
+> `忽略此接口` ☑️ > `保存&应用` 
 
-防火墙
-- `网络` > `防火墙` > `自定义规则`  
-- `复制粘贴下列代码` > `保存&应用` 
+- 防火墙
+
+> `网络` > `防火墙`  
+> 
+> `基本设置` > `启用FullCone-NAT`☑️ > `转发` - `接受`  > `保存&应用`  
+> 
+>  `自定义规则` >  `复制粘贴下列代码` > `保存&应用` 
 ```ini
 # 国内慢速或无法联网则添加此条命令
-iptables -t nat -I POSTROUTING -j MASQUERADE
+iptables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
 ```
 
-网络加速
-- `网络` > `网络加速`  
-- `启用 BBR` ☑️ > `保存&应用` 
+- 网络加速
+
+> `网络` > `网络加速`  
+> 
+> `启用 BBR` ☑️ > `保存&应用` 
 
 
 ## 旁路网关的相关设置
@@ -134,4 +143,4 @@ iptables -t nat -I POSTROUTING -j MASQUERADE
 > 
 > 优点：该路由器下所有内网设备都能以旁路由模式上网，无需每台单独设置
 > 
-> 缺点：折腾時可能会影响他人正常上网
+> 缺点：折腾時可能会影响其他设备网络
