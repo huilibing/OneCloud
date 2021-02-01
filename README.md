@@ -1,10 +1,11 @@
 
 ## 固件包含的插件
 ```ini
-┌ VSSR                  [ Hello World ]  
+┌ Hello World           [ 支持多种主流协议和多种自定义视频分流服务，并直观的显示节点信息 ]  
+├ Openclash             [ 根据灵活的规则配置实现策略代理 ]
 ├ DNSFilter             [ 支持 AdGuardHome/Host/DNSMASQ/Domain 规则, 对广告进行过滤 ]
 ├ KMS Activator         [ KMS 激活服务器，可用于激活 Windows 或 Office ]  
-└ Netease Music         [ 解锁网易云灰色歌曲 ]
+└ NeteaseMusic          [ 解锁网易云音乐灰色歌曲 ]
 ```
 
 
@@ -25,6 +26,7 @@ docker network create -d macvlan --subnet=10.10.10.0/24 --gateway=10.10.10.1 -o 
 ```
 
 拉取镜像配置容器
+- 将 `--ip 10.10.10.11` 修改为你自己主路由的网段IP
 ```ini
 # 拉取 `OpenWrt` 镜像
 docker pull w8ves/openwrt:onecloud
@@ -37,10 +39,8 @@ docker run --restart always --name openwrt -d --network macnet --ip 10.10.10.11 
 ```ini
 # 查看运行中的容器
 docker ps -a
-
-# 运行中的容器
-CONTAINER ID   IMAGE           COMMAND        CREATED         STATUS        PORTS     NAMES
-0bd53ac6f3e8   w8ves/openwrt   "/sbin/init"   9 minutes ago   Up 19 minutes           openwrt
+# CONTAINER ID   IMAGE           COMMAND        CREATED         STATUS        PORTS     NAMES
+# 0bd53ac6f3e8   w8ves/openwrt   "/sbin/init"   9 minutes ago   Up 19 minutes           openwrt
 
 # 进入容器命令行
 docker exec -it openwrt /bin/bash
@@ -64,7 +64,7 @@ config interface 'lan'
 	option _orig_ifname 'eth0'
 	option _orig_bridge 'true'
 	option proto 'static'
-	option ipaddr '10.10.10.11'  # 修改为你自己主路由的网段IP
+	option ipaddr '10.10.10.11'  # 填写创建容器时的IP
 	option netmask '255.255.255.0'
 	option gateway '10.10.10.1'  # 修改为你自己主路由的IP
 	option dns '10.10.10.1'      # DNS 可填主路由IP 也可填公共DNS
@@ -79,7 +79,7 @@ config interface 'lan'
 exit
 ```
 
-永久开启网卡混杂模式
+> 永久开启网卡混杂模式
 ```ini
 # 修改配置
 vi /etc/network/interfaces
@@ -103,16 +103,35 @@ iface eth0 inet dhcp
 接口
 
 - `网络` > `接口` > `修改`  
-- ☑️ `忽略此接口` > `保存&应用` 
+- `忽略此接口` ☑️ > `保存&应用` 
 
 防火墙
 - `网络` > `防火墙` > `自定义规则`  
 - `复制粘贴下列代码` > `保存&应用` 
 ```ini
 # 国内慢速或无法联网则添加此条命令
-iptables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
+iptables -t nat -I POSTROUTING -j MASQUERADE
 ```
 
 网络加速
 - `网络` > `网络加速`  
-- `启用 BBR`☑️ > `保存&应用` 
+- `启用 BBR` ☑️ > `保存&应用` 
+
+
+## 旁路网关的相关设置
+
+- 个体设备 
+
+> 设置 `旁路由` 为网关，个别设备独自通过 `旁路由` 上网
+> 
+> 优点：折腾旁路由时，不影响其他设备网络  
+> 
+> 缺点：重复设置每个设备  
+
+- 所有设备 
+
+>  `路由器` 设置 `旁路由` 为该路由器网关，该路由器下所有内网设备都通过 `旁路由` 网
+> 
+> 优点：该路由器下所有内网设备都能以旁路由模式上网，无需每台单独设置
+> 
+> 缺点：折腾時可能会影响他人正常上网
